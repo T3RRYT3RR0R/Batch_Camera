@@ -234,7 +234,6 @@ REM functional demonstrations
 
   %unload:macro=raise_Error%
   %unload:macro=$cam%
-  %unload:macro=menu%
   %unload:macro=unload%
 
   %= DEFAULT MAP BACKGROUND COLOR =%
@@ -587,5 +586,6 @@ REM                     ▒ ▓ ░ █ ▬ ▄ ▀ ¦
 :1:                                                                                                                                       ¦¦ ¦¦  ¦¦ ¦¦                  || 
 :1:                                                                                                                                                                     || 
 :1:                                                                                                                                                                     || 
+
 
 
