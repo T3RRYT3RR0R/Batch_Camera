@@ -29,7 +29,7 @@ REM    Raise_Error once only. A For /F loop will be required to expand the argum
   Set raise_Error=For %%n in (1 2) Do if %%n==2 (%\n%
     Call Set "raise_error.host=%%~f0"%\n%
     Set "raise_Error.OK="%\n%
-    Setlocal EnableDelayedExpansion%\n: =%
+    Setlocal EnableDelayedExpansion%\n%
      For /f "delims=" %%S in ("^!raise_error.host^!") Do For /f "tokens=1,2,* Delims=. " %%G in ("^!args^! ^^^!%= ! Guards against empty Args  =%") Do Endlocal ^& (%\n%
       Set "raise_Errored="%\n%
       For /f "tokens=2,3,4,5,* delims=e:. " %%B in ('%systemroot%\system32\findstr.exe /RIC:"REM e[0123456789]\.[0123456789]\.%%G\.%%H" "%%S"') Do (%\n%
@@ -44,7 +44,7 @@ REM    Raise_Error once only. A For /F loop will be required to expand the argum
           Echo(%\n%
           Set "raise_error.Found="%\n%
           For /f "tokens=1 Delims==: " %%T in ('%systemroot%\system32\findstr.exe /RIC:"ModuleID[:] %%D" "%%S"') Do (%\n%
-             Echo( Error raised by: "%%T" in file:"%%S"%\n%
+             Echo( Error raised by: "%%T" in: "%%S"%\e%[E%\n%
              Set "raise_error.Found=1"%\n%
           )%\n%
           If not defined raise_error.Found Echo( Error raised by: %%~nS%= unspecified module =%%\n%
@@ -81,19 +81,23 @@ Set raise_Error.Int=For %%n in (1 2) do if %%n == 2 (Set "Raise_ErrorNoArgs="%\n
     If /i "%%~p" == "Missing" Set "Raise_ErrorNoArgs=2"%\n%
     If defined Raise_ErrorNoArgs (!raise_Error! 0.0 Invalid. arg1="%%~o" arg2="%%~p"%\n%
     Exit /b 1)%\n%
-    2> nul Set /a "raiseError.temp=%%~p" ^|^| Set "raiseError.temp=0"%\n%
+    2> nul Set /a "raise_Error.tmp=%%~p" ^|^| Set "raise_Error.tmp=0"%\n%
     For /f "delims=0123456789" %%V in ("%%~p") Do (%\n%
-      if "^!%%~p^!" == "" ( Set "raiseError.temp=0" ^& Set "%%~p=unassigned" )%\n%
-      if "NoVar" == "" ( Set "raiseError.temp=0" ^& Set "%%~p=Variable reference Prohibited" )%\n%
+      if "^!%%~p^!" == "" ( Set "raise_Error.tmp=0" ^& Set "%%~p=unassigned" )%\n%
+      if "NoVar" == "" ( Set "raise_Error.tmp=0" ^& Set "%%~p=Variable reference Prohibited" )%\n%
     )%\n%
-    If not "^!%%~p^!" == "" if not "^!%%~p^!" == "^!raiseError.temp^!" if not "^!%%~p:~0,2^!" == "0x" Set "raiseError.temp=0"%\n%
-    If "^!raiseError.temp^!" == "0" For /f "delims=" %%V in ("^!%%~p^!") do (%\n%
-      !raise_Error! 0.0 %%o Variable:"%%~p" Assignment:"%%V" Invalid.%\n%
+    If not "^!%%~p^!" == "" if not "^!%%~p^!" == "^!raise_Error.tmp^!" if not "^!%%~p:~0,2^!" == "0x" Set "raise_Error.tmp=0"%\n%
+    If "^!raise_Error.tmp^!" == "0" For /f "delims=" %%V in ("^!%%~p^!") do (%\n%
+      !raise_Error! 0.0 %%o Invalid: Variable:"%%~p"="%%V"%\n%
     )%\n%
   )%\n%
 ) else set args=
 
 Set "raise_Error.int=!raise_Error.int:  =!"
+Set "raise_Error.int=!raise_Error.int:) Do =)Do !"
+Set "raise_Error.int=!raise_Error.int: &=&!"
+
+
 exit /b 0
 
 REM=u raise_Error help file

@@ -2,9 +2,10 @@
 
 REM Module responsibilities:
 REM handle selection of camera size
+REM declare font size and name and invoke SetFont to apply
 REM configure the variables used to construct the camera macro
-REM assign variables used for camera control, bounding
-REM assign FPS target 
+REM assign variables used for camera / player control, bounding
+REM assign FPS target
 
 REM e5.1.6.0 Expected format for Sizes List, Where Height and width are integers:
 REM e5.1.6.0 "Height x Width" "Height x Width" ...
@@ -20,10 +21,12 @@ If not "!!" == "" (
   Exit /b 1
 )
 
-  Call "%~dp0setFont.cmd" 10 "Cascadia Code"
-
 %= DEPENDENCY - FORMATED MENU SELECTION TOOL =%
   Call "%~dp0init_menu.cmd"
+  If errorlevel 1 exit /b %errorlevel%
+
+%= Apply desired Font =%
+  Call "%~dp0setFont.cmd" 10 "Cascadia Code"
   If errorlevel 1 exit /b %errorlevel%
 
 REM default size applied.

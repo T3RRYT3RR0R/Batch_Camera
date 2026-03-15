@@ -1,8 +1,35 @@
-:setFont <integerSize> <stringFontName>
+:setFont ModuleID: 7
+REM e5.1.7.1 Integer expected for Arg 1
+if not defined setfont (
+REM e2.1.7.2 %SetFont% <arg1> <arg2>
+) 
+REM e2.1.7.2 Arg1: IntegerSize
+REM e2.1.7.2 Arg2: "Font Name"
+REM e5.1.7.3 Font not found.
+
+:raise_Error.int ModuleID: 0
+REM e2.1.0.0: Argument missing.
+
 REM from the StdLibrary created by IcarusLives
 REM https://github.com/IcarusLivesHF/Windows-Batch-Library/tree/8812670566744d2ee14a9a68a06be333a27488cc
-if "%~2" equ "" goto :eof
-call :init_setfont
+if not defined raise_Error (
+  Echo( Required dependency missing: raise_Error
+  Echo( Definition expected before calling "%~f0"
+  Pause
+  Exit /b 1
+)
+
+If "%~1" == "" %raise_Error% 7.2 Argument 1 Missing.
+If "%~2" == "" %raise_Error% 7.2 Argument 2 Missing.
+
+%raise_Error.int:NoVar=% 7.1 %~1
+
+( reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts" | %SystemRoot%\System32\findstr.exe /lic:"%~2" )  1> nul 2> nul || (
+  %raise_Error% 7.3 Arg2 contains invalid Font Name: "%~2"
+)
+
+
+if not defined setFont call :init_setfont
 %setFont% %~1 %~2
 goto :eof
 
@@ -49,9 +76,4 @@ set setfont=for /l %%# in (1 1 2) do if %%#==2 (^
 %=% [WApi]::CloseHandle($hOut);^") else setlocal EnableDelayedExpansion^&set arg=
 endlocal &set "setfont=%setfont%"
 if !!# neq # set "setfont=%setfont:^^!=!%"
-exit /b
-
-:Error
-	<nul Set /p "=Error:" & CMD /C Set /A %1
-PAUSE
-Exit /B
+exit /b 0

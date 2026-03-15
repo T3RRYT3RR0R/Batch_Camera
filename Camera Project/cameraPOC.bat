@@ -11,6 +11,7 @@ REM   https://www.dostips.com/forum/viewtopic.php?t=4741#p27330
 REM   https://archive.is/Y6hgZ
 
 :main ModuleID: 1
+cd /d "%~dp0"
 Setlocal EnableExtensions EnableDelayedexpansion
 %= Prepare a clean and minimal Environment by undefining all but minimally required variables =%
  if not defined temp if defined tmp set "temp=!tmp!"
@@ -75,7 +76,7 @@ REM e1.1.1.1:     !#[int]:~offset:retain!!#[int]:~offset:retain!!#[int]:~offset:
 
 
 %= EXAMPLE OF DEFINING A SPRITE ENTITY =%
-Set "Player=%\e%[7;^!p.c^!m%\e%[^!p.Y1^!;^!p.x^!H▓▓▓%\e%[^!p.Y2^!;^!p.x^!H^!p.occupied:~3,3^!%\e%[^!p.Y3^!;^!p.x^!H^!p.occupied:~6,3^!%\e%[48;2;^!Map.bgc^!;27m"
+Set "Player=%\e%[7;^!p.c^!m%\e%[^!p.Y1^!;^!p.x^!H▓▓▓%\e%[^!p.Y2^!;^!p.x^!H^!p.occupied:~3,3^!%\e%[^!p.Y3^!;^!p.x^!H^!p.occupied:~6,3^!%\e%[^!p.u^!;^!p.x^!H^!p.above^!%\e%[48;2;^!Map.bgc^!;27m"
 REM %sprites% are appended each $quad.n echo like an overlay to eliminate flickering.
 REM           IE: Echo(!$quad.1!%sprites%
 REM the number and complexity of sprites will reduce the maximum possible area / substitutions possible.
@@ -285,7 +286,7 @@ REM functional demonstrations
         If !incFPS! GTR 0 If !tDiff! GEQ !oFPS! If !FPS! GTR !oFPS! Set /a FPS-=1
         If !frames! GTR 350 If !metFr! GTR !droppedFr! Set /a FPS=fAvg,frameLock=frames,LkDropped=droppedFR,droppedFR=0
       )
-      %$cam.clip.3x3% p !p.xA! %Ydata.3x3:ID=p%
+      %$cam.clip.3x3% !p.up! !p.dn! !p.lt! !p.rt! p !p.xA! %Ydata.3x3:ID=p%
       %= demonstrative visual indicator of collision state =% If "!p.collided!" == "" ( Set "p.c=32" ) Else (
         Set "p.c=31"
         Set "p.f="%= definition flags play vector flipped to restrict to once per collision event =%
@@ -471,6 +472,26 @@ exit /b 0
 :construct.$cam.clip
 REM call:construct.$cam.clip <Height> <Width>
 REM  Where H is the height as an int and W is the width as an int 
+REM -- does not currently support sprites that have width GTR height
+REM    as the extractor is built by iterating the height.
+
+REM TBA consideration: modify $cam.clip extractor to return collision data for:
+REM Above Below Left and Right of sprite-Map relation. This will require:
+REM modify:
+REM Set /a $cam.vp.metaVarCount=$cam.vp.H+2
+REM To accomodate 4 additional fixed expansion pointers: 
+REM Set /a $cam.vp.metaVarCount=$cam.vp.H+6
+REM those being the following variables, where "id.xA=c.X+(id.X-1)" and "id.Y1A=(c.Y+id.Y)-1"
+REM id.lft=id.xA-1
+REM id.rght=id.xA+id.W
+REM id.up=id.Y1A-1
+REM id.dwn=id.Y1A+id.H
+REM the aforementioned variables will be built into and updated with expansions of $cam.update.Obj
+REM changing the for /f expansion loop of $cam.clip.%$cam.vp.H%x%$cam.vp.W% to begin reference from %%e
+REM Modify clamp bounding constraint to prevent sprite from getting within 1 character space of any
+REM camera edge to prevent attempts to access undefined variables.
+REM build the appropriate expansion string to extract map overlap data to variables:
+REM id.left id.right id.above id.below and use same whitespace removal method for direct overlap collisions
 
 REM This function constructs a macro to generate something equivalent to a cropped screenshot of the
 REM area of the map occupied by an object [ie player] to facilitate collisioning logic.
@@ -495,7 +516,7 @@ REM returns: returnID.occupied = a string containing all characters the area ove
 REM          returnID.collided = defined If the overlap character contains any non whitespace character
 REM          NOTE: original map characters returned - NOT the substituted mappings
 REM  %$cam.clip.HxW% ReturnID xpos !obj.HxW.Ydata:ID=objectID!
-
+rem abcde fghij
 REM Tokens     1      ~      16
 Set "$cam.vp.metavars= klmnopqrstuvwxyz"
 Set /a "$cam.vp.H=%~1","$cam.vp.W=%~2","1/$cam.vp.H","1/$cam.vp.W" || Exit /b 1
@@ -505,12 +526,13 @@ Set /a $cam.vp.metaVarCount=$cam.vp.H+2
 Set "$cam.vp.Oc="
 Set $cam.update.Obj="id.xA=c.X+(id.X-1)","id.Y1A=(c.Y+id.Y)-1","id.Y1=p.Y","id.Y.end=(c.y+c.h)-%~1","id.X.end=(c.w-%~2)+1"
 Set "Ydata.%$cam.vp.H%x%$cam.vp.W%="
-for /l %%n in (1,1,%$cam.vp.H%) do (
-  Set /A $cam.y.offset=%%n-1
-  If %%n GTR 1 Set $cam.update.Obj=!$cam.update.Obj!,"id.y%%nA=id.y1A+!$cam.y.offset!","id.y%%n=id.y+!$cam.y.offset!"
-  for /f "delims=" %%G in ("!$cam.vp.metavars:~%%n,1!") do (
+
+for /l %%_ in (1,1,%$cam.vp.H%) do (
+  Set /A $cam.y.offset=%%_-1
+  If %%_ GTR 1 Set $cam.update.Obj=!$cam.update.Obj!,"id.y%%_A=id.y1A+!$cam.y.offset!","id.y%%_=id.y+!$cam.y.offset!"
+  for /f "delims=" %%G in ("!$cam.vp.metavars:~%%_,1!") do (
     Set "$cam.vp.Oc=!$cam.vp.Oc!^!#[%%~%%~G]:~%%~j,%$cam.vp.W%^!"
-    Set "Ydata.%$cam.vp.H%x%$cam.vp.W%=!Ydata.%$cam.vp.H%x%$cam.vp.W%! ^!ID.Y%%nA^!"
+    Set "Ydata.%$cam.vp.H%x%$cam.vp.W%=!Ydata.%$cam.vp.H%x%$cam.vp.W%! ^!ID.Y%%_A^!"
 ) )
 
 Set "Ydata.%$cam.vp.H%x%$cam.vp.W%=!Ydata.%$cam.vp.H%x%$cam.vp.W%:* =!"
@@ -586,6 +608,5 @@ REM                     ▒ ▓ ░ █ ▬ ▄ ▀ ¦
 :1:                                                                                                                                       ¦¦ ¦¦  ¦¦ ¦¦                  || 
 :1:                                                                                                                                                                     || 
 :1:                                                                                                                                                                     || 
-
 
 
