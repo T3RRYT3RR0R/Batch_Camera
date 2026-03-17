@@ -29,7 +29,7 @@ If not "!!" == "" (
  REM e5.1.3.4: use whitespace to pad map lines until equal length.
 
   IF not defined strlen %raise_Error% 3.2 StrLen macro undefined.
-  IF not exist "%~f1" %raise_Error% 0x03 Map File does not exist at filepath: "%~f1"
+  IF not exist "%~f1" %raise_Error% 3.1 Map File does not exist at filepath: "%~f1"
   set "$cam.map.invalid=1"
   Set "$cam.spaces=  "
   For /l %%i in (1 1 5) Do Set "$cam.spaces=!$cam.spaces: =    !"

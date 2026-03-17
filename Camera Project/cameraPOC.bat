@@ -4,9 +4,9 @@ REM Font used is Cascadia Code size 10 - SetFont by IcarusLives is used to assig
 REM This font represents UTF-8 Glyphs well across all sizes.
 
 REM Author: T3RRYT3RR0R aka T3RRY or T3RR0R
-REM This project includes Macros authored by:
-REM Einst IcarusLives and Aacini
-REM Time elapsed mechanism By dBenham - refined by aGerman
+REM This project includes utilities authored by:
+REM Einst [strlen], IcarusLives [setfont, clamp] and Aacini [clamp]
+REM dBenham + aGerman [time Elapsed method]
 REM   https://www.dostips.com/forum/viewtopic.php?t=4741#p27330
 REM   https://archive.is/Y6hgZ
 
@@ -15,17 +15,23 @@ cd /d "%~dp0"
 Setlocal EnableExtensions EnableDelayedexpansion
 %= Prepare a clean and minimal Environment by undefining all but minimally required variables =%
  if not defined temp if defined tmp set "temp=!tmp!"
- Set "PathExt=.COM;.BAT;.CMD;.EXE"
- Set "exclude= temp PathExt comspec winDir cmdcmdline systemroot exclude "
- 2> nul (
-   for /f "tokens=1 delims==" %%G in ('Set') Do If "!exclude:%%~G=!" == "!exclude!" Set "%%~G="
+ Set "PathExt=.COM;.BAT;.CMD;.EXE;.MSC"
+ Set "exclude= temp PathExt comSpec winDir cmdcmdline systemRoot exclude "
+ 2> nul (   
+   for /f "tokens=1 delims==" %%G in ('Set') Do (
+     If /i "%%G" == "Path" (
+       Set out=!Path!
+     )
+     If "!exclude: %%~G =!" == "!exclude!" Set "%%~G="
+   )
    Set "exclude="
+   Set "Path=%SystemRoot%;%winDir%;%cd%;%WinDir%\System32;%WinDir%\System32\wbem;%SYSTEMROOT%\System32\WindowsPowerShell\v1.0\"
  )
 
 REM to activate debugging define debug below
 Set "debug=1" %= demo currently clones map horizontally using this assignment =%
 
-Set unload=for /f "Tokens=1 delims==" %%G in ('Set macro') Do 2^> nul Set "%%G="
+Set unload=for /f "Tokens=1 delims==" %%G in ('Set nameSpace') Do 2^> nul Set "%%G="
 
 %= DEPENDENCIES are TOP LEVEL and may be required in module scripts =%
 %= DEPENDENCY - \n used for Multiline Macros =% (Set \n=^^^
@@ -37,13 +43,14 @@ Set unload=for /f "Tokens=1 delims==" %%G in ('Set macro') Do 2^> nul Set "%%G="
   REM clamp macro Authored by IcarusLives and Aacini
   REM clamp Usage: || Set /a "x=VarToClamp, low=minValue, high=maxValue, VarToClamp=%clamp%"
   REM used to bound player and map and apply configuration defaults
-%= DEPENDENCY - Value Range Bounding =%  Set "clamp= (leq=((low-(x))>>31)+1)*low  +  (geq=(((x)-high)>>31)+1)*high  +  ^^^!(leq+geq)*(x) "
+%= DEPENDENCY - Value Range Bounding =%
+  Set "clamp= (leq=((low-(x))>>31)+1)*low  +  (geq=(((x)-high)>>31)+1)*high  +  ^^^!(leq+geq)*(x) "
 
+:raise_Error.int ModuleID: 0
+REM e5.1.0.0: Argument missing.
 %= DEPENDENCY - Error Logging. =%
   Call "%~dp0Modules\init_raise_Error.cmd"
   If errorlevel 1 exit /b %errorlevel%
-:raise_Error.int ModuleID: 0
-REM e5.1.0.0: Argument missing.
 
 %= DEPENDENCY - String content discovery  =%
   Call "%~dp0Modules\init_strlen.cmd"
@@ -52,13 +59,12 @@ REM e5.1.0.0: Argument missing.
 %= DEPENDENCY - Utf-8 =%
   chcp 65001 1> nul
 
-
 REM TBA inspect Load_Map and confirm c. bounding variables are
 REM     all defined to facilitate on-the-fly map changes 
 %= DEFINES PREREQUISITE VARIABLES THAT CONSTRAIN SIZE SELECTION =%
   If "!debug!" == "1" ( Set "$cam.LoadSwitch=/r" ) Else Set "$cam.LoadSwitch="
   %=          filepath    MapID           Reset[Development_Testing] =%
-  Call "%~dp0Modules\load_Map.cmd" "%~f0"        1           %$cam.LoadSwitch%
+  Call "%~dp0Modules\load_Map.cmd" "%~dp0data\demomap.txt"        1           %$cam.LoadSwitch%
   If errorlevel 1 exit /b %errorlevel%
 
   Call "%~dp0Modules\Config_Camera.cmd" "40 x 125" "57 x 100" "27 x 148" "27 x 320" "40 x 252" "60 x 176"
@@ -73,7 +79,6 @@ REM e1.1.1.1:     to prevent misalignment of expansion expressions, which
 REM e1.1.1.1:     fail as an attempt to extract a substring from empty variables.
 REM e1.1.1.1: IE, outputting the literal form of:
 REM e1.1.1.1:     !#[int]:~offset:retain!!#[int]:~offset:retain!!#[int]:~offset:retain!...
-
 
 %= EXAMPLE OF DEFINING A SPRITE ENTITY =%
 Set "Player=%\e%[7;^!p.c^!m%\e%[^!p.Y1^!;^!p.x^!H▓▓▓%\e%[^!p.Y2^!;^!p.x^!H^!p.occupied:~3,3^!%\e%[^!p.Y3^!;^!p.x^!H^!p.occupied:~6,3^!%\e%[^!p.u^!;^!p.x^!H^!p.above^!%\e%[48;2;^!Map.bgc^!;27m"
@@ -131,7 +136,6 @@ For /l %%i in (1 1 !c.h!) do (
 
 REM segment camera quardants based on aspect ratio
 Call:Cam.%$cam.splitmode%_init
-
 
 %= ColorMap is not integral to the Camera system    =%
 %= It is just a means of facilitating Substitutions =%
@@ -233,9 +237,10 @@ REM functional demonstrations
   Set /a "droppedFR=0","metFR=0","framesTtl=0"
   Set "last=!TIME:~-2!"
 
-  %unload:macro=raise_Error%
-  %unload:macro=$cam%
-  %unload:macro=unload%
+  %unload:nameSpace=raise_Error%
+  %unload:nameSpace=$cam%
+  %unload:nameSpace=unload%
+  %unload:nameSpace=setfont%
 
   %= DEFAULT MAP BACKGROUND COLOR =%
   If not defined Map.bgc Set "Map.bgc=30;30;60"
@@ -544,69 +549,4 @@ Set $cam.clip.%$cam.vp.H%x%$cam.vp.W%=For %%n in (1 2) Do If %%n == 2 For /f "to
 
 
 exit /b 0
-
-
-REM                     ▒ ▓ ░ █ ▬ ▄ ▀ ¦
-
-:1:     // /  |           @   //RR/  |                                                                                                                                  || 
-:1:    /R\/   |           I  /RR\/   |                                              ___                                                                                 -- 
-:1:   |   |+o+o+o+o+o+o+o+o+o|   |   /                                             (+o+)|                                                                               || 
-:1:   |   |o+o+o+/--\o+o+o+o+|   |  /                                              [o+o]/                                                                               || 
-:1:   |   |+o+o+o|vv|+o+o+o+o|   | /                                               vvvvv                                                                                || 
-:1:   |   |o+o+o+|vv|o+o+o+o+|   |/                                                                                                                                     || 
-:1:                                                                                                          ___________            }{{}{                               -- 
-:1:                                               @y                                                      /RRRRRRRRRRR/R\             {}                                || 
-:1:    @                                          Y                                                      /+o+o+o+o+o+o\RR\            ¦¦                                || 
-:1:    Y                                          i                                                     /+o+o+o+o+o+o+o\/|            ¦¦                                || 
-:1:    i                   i-----i                                                                      |o+o[ ]o+o[ ]o+| |                                              || 
-:1:                    wwwwnnwwwwwwnn                                                                   |+o+o+o+o+o+o+o| |                                              -- 
-:1:                 wwwwwnnwwnnnwwwwn                                                                   |o+o+o+o+o+o+o+| |                                              || 
-:1:                wwnnnwwwnnwwwnnnwwn                                                                                                                                  || 
-:1:               wnnwwwnnwwwwnnwwwwnn                                                                                                                                  || 
-:1:                                                                                                                                                                     || 
-:1:                                                                                                                                                                     -- 
-:1:                                                                                   }-{                                                                               || 
-:1:                                                                                  }}¦{{                                                                              || 
-:1:                                                                                 }} W {{                                                                             || 
-:1:                                                                                @-¦   ¦                                                                              || 
-:1:                                                                                 o+o+o+o                                                                             -- 
-:1:                                                                                 +++++++  @-                                                                        |  |
-:1:                                                                                                                                                                    |  |
-:1:                                                                                                                                                                     -- 
-:1:                                                                                                                                                                     || 
-:1:                                                                                                                                                                     || 
-:1:                                                                                                       _____  _____  _____                                           || 
-:1:                                                                                                      /RRRRR\/RRRRR\/RRRR\\                                          || 
-:1:       }{ }{ }{ }{ }{ }{ }{ }{}{{                                                                    |+o+o+o|+o+o+o|+o+o+o||                                         -- 
-:1:      }}{}}{}}{}}{}}{}}{}}{{}{{}{{                                                                   |o+o+_____+o_____ o_____                                        || 
-:1:       ¦¦ ¦¦ ¦¦ ¦¦ ¦¦ ¦¦ ¦¦ ¦¦ ¦¦                                                                    |+o+/RRRRR\/RRRRR\/RRRRR\\                                      || 
-:1:       ¦¦ ¦¦ ¦¦ ¦}{¦}{¦}{¦}{¦}{¦}{ }{                                                                    |+o+o+o|+o+o+o|+o+o+o||                                     || 
-:1:                }}{}}{}}{}}{}}{}}{}}{{                                                                   |o+o+o+|o+o+o+|o+o+o+||                                     || 
-:1:                 ¦¦ ¦¦ ¦¦ ¦¦ ¦¦ ¦¦ ¦¦                                                                    |+o+o+o|+o+o+o|+o+o+o||                                     -- 
-:1:                 ¦¦ ¦¦ ¦¦ ¦¦ ¦¦ ¦¦ ¦¦                                                                                                          }{                    || 
-:1:                                                                                                                                            }{}}{{}{                 || 
-:1:                                                                                                                                           }}{{¦¦}}{{}{              || 
-:1:                                                                                                                                       }{ }{¦¦}{¦}{¦}}{{             || 
-:1:                                                                                                                                      }}{{}{{}}{{}{{ ¦¦              -- 
-:1:                                                                                                                                       ¦¦ ¦¦  ¦¦ ¦¦  ¦¦              || 
-:1:                                                                                                                                       ¦¦ ¦¦  ¦¦ ¦¦                  || 
-:1:                                                                                                                                                                     || 
-:1:                                                                             _____  _____  _____                                                                     || 
-:1:                                                                            /RRRRR\/RRRRR\/RRRRR\\                                                                   -- 
-:1:   }{ }{                                                                    |+o+o+o|+o+o+o|+o+o+o||                                                                  || 
-:1:  }}{{}{{                                                                   |o+o+_____ +o_____ o_____                                                                || 
-:1:   ¦¦ ¦¦                                                                    |+o+/RRRRRR\/RRRRR\/RRRR\\                                                               || 
-:1:   }{ }{{                                                                       |+o+o+o|+o+o+o|+o+o+o||                                                              || 
-:1: }{}}{}}{{                                                                      |o+o+o+|o+o+o+|o+o+o+||                                                              -- 
-:1: ¦¦ ¦¦ ¦¦                                                                       |+o+o+o|+o+o+o|+o+o+o||                                                              || 
-:1:                                                                                                                                               }{                    || 
-:1:                                                                                                                                            }{}}{{}{                 || 
-:1:                                                                                                                                           }}{{¦¦}}{{}{              || 
-:1:                                                                                                                                       }{ }{¦¦}{¦}{¦}}{{             -- 
-:1:                                                                                                                                      }}{{}{{}}{{}{{ ¦¦              || 
-:1:                                                                                                                                       ¦¦ ¦¦  ¦¦ ¦¦  ¦¦              || 
-:1:                                                                                                                                       ¦¦ ¦¦  ¦¦ ¦¦                  || 
-:1:                                                                                                                                                                     || 
-:1:                                                                                                                                                                     || 
-
 

@@ -140,6 +140,6 @@ REM Note: $cam.metavarRestrictedHeight is a stability and performance restrictio
   %= 24 20 and 16 fps correspond to meaningful centisecond tDiffs 4 5 and 6 respectfully =%
   Set /a "tFPS=24","FPS=100/(tFPS)" %= <-- DEFINE FRAMERATE target by modifing tFPS =%
 
-  %unload:macro=menu%
+  %unload:nameSpace=menu%
 
 exit /b 0
