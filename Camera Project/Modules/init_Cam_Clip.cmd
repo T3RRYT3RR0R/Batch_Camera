@@ -74,14 +74,30 @@ REM          returnID.collided = defined If the overlap character contains any n
 REM          NOTE: original map characters returned - NOT the substituted mappings
 REM  %$cam.clip.HxW% ReturnID xpos !obj.HxW.Ydata:ID=objectID!
 rem abcde fghij
-REM Tokens     1      ~      16
-Set "$cam.vp.metavars= klmnopqrstuvwxyz{"
-Set /a "low=1,high=16,x=%~1,$cam.vp.H=%clamp%",^
-       "low=1,high=16,x=%~2,$cam.vp.W=%clamp%"
 
-Set /a $cam.vp.metaVarCount=$cam.vp.H+2
+rem tokens map:
+rem i = id reference key      
+rem j = idxA                     [map adjusted idX position]
+rem k = idxA-1                   [id left adjacent]
+rem l = idxA+id.w+1              [id right adjacent]
+rem m = idyA-1                   [id above]
+rem n = idyA+id.h+1              [id below]
+rem o ~ { = id.y1A ~ id.y1A+id.H [object y occupied lines]
+REM Tokens     1      ~      13
+  Set "$cam.vp.metavars= opqrstuvwxyz{"
+
+Set "$cam.adjacents=^!id.xLeft^! ^!id.xRight^! ^!id.yAbove^! ^!id.yBelow^!"
+
+
+Set /a "low=1,high=13,x=%~1,$cam.vp.H=%clamp%",^
+       "low=1,high=13,x=%~2,$cam.vp.W=%clamp%"
+
+rem tokens = height + id reference + left + right + above + below
+Set /a $cam.vp.metaVarCount=$cam.vp.H+6
 Set "$cam.vp.Oc="
-Set $cam.update.Obj="id.xA=c.X+(id.X-1)","id.Y1A=(c.Y+id.Y)-1","id.Y1=p.Y","id.Y.end=(c.y+c.h)-%~1","id.X.end=(c.w-%~2)+1"
+REM %= to cameraEdge _ comparitor is id.x =% Set $cam.update.Obj="id.xA=c.X+(id.X-1),id.Y1A=(c.Y+id.Y)-1,id.Y1=p.Y,id.Y.end=(c.y+c.h)-%~1,id.X.end=(c.w-%~2)+1,id.yAbove=id.y1A-1,id.yBelow=id.y1A+id.h+1,id.xLeft=id.xA-1,id.xRight=id.xA+id.W+1"
+rem cap traversal to mapEdge-1  _ comparitor is id.xA : id.x.max="(c.x.max-id.w)-id.w"
+%= id.x.max cap traversal to cameraEdge-1 _ comparitor is id.x  =% Set $cam.update.Obj="id.xA=c.X+(id.X-1),id.Y1A=(c.Y+id.Y)-1,id.Y1=p.Y,id.Y.end=(c.y.max-id.h)-1,id.X.end=(c.w-id.w),id.yAbove=id.y1A-1,id.yBelow=id.y1A+id.h+1,id.xLeft=id.xA-1,id.xRight=id.xA+id.W+1"
 Set "Ydata.%$cam.vp.H%x%$cam.vp.W%="
 
 for /l %%_ in (1,1,%$cam.vp.H%) do (
@@ -92,11 +108,46 @@ for /l %%_ in (1,1,%$cam.vp.H%) do (
     Set "Ydata.%$cam.vp.H%x%$cam.vp.W%=!Ydata.%$cam.vp.H%x%$cam.vp.W%! ^!ID.Y%%_A^!"
 ) )
 
+Set "$cam.%$cam.vp.H%x%$cam.vp.X%.left="
+Set "$cam.%$cam.vp.H%x%$cam.vp.X%.right="
+For /f "tokens=1,2" %%X in ("%$cam.vp.W% %$cam.vp.H%") Do (
+  For /l %%i in (1 1 %%Y) Do (
+    For /f "delims=" %%G in ("!$cam.vp.metavars:~%%i,1!") do (
+      Set "$cam.%%Yx%%X.left=!$cam.%%Yx%%X.left!^!#[%%~%%~G]:~%%~k,1^!"
+      Set "$cam.%%Yx%%X.right=!$cam.%%Yx%%X.right!^!#[%%~%%~G]:~%%~l,1^!"
+      if %%i==1 (
+        Set "$cam.%%Yx%%X.above=^!#[%%~m]:~%%~j,%%~X^!"
+        Set "$cam.%%Yx%%X.below=^!#[%%~n]:~%%~j,%%~X^!"
+      )
+    )
+  )
+)
+
 Set "Ydata.%$cam.vp.H%x%$cam.vp.W%=!Ydata.%$cam.vp.H%x%$cam.vp.W%:* =!"
 
 Set $cam.clip.%$cam.vp.H%x%$cam.vp.W%=For %%n in (1 2) Do If %%n == 2 For /f "tokens=1-%$cam.vp.metaVarCount%" %%i in ("^!obj.inf^!") Do (%\n%
   Set "%%~i.occupied=!$cam.vp.Oc!"%\n%
   Set "%%~i.collided=^!%%~i.occupied: =^!"%\n%
+  Set "%%~i.Left="%\n%
+  Set "%%~i.Right="%\n%
+  Set "%%~i.Above="%\n%
+  Set "%%~i.Below="%\n%
+  If "^!%%~iXmode^!" == "-" (%\n%
+    Set "%%~i.ocL=!$cam.%$cam.vp.H%x%$cam.vp.W%.left!"%\n%
+    Set "%%~i.Left=^!%%~i.ocL: =^!"%\n%
+  )%\n%
+  If "^!%%~iXmode^!" == "+" (%\n%
+    Set "%%~i.ocR=!$cam.%$cam.vp.H%x%$cam.vp.W%.right!"%\n%
+    Set "%%~i.Right=^!%%~i.ocR: =^!"%\n%
+  )%\n%
+  If "^!%%~iYmode^!" == "-" (%\n%
+    Set "%%~i.ocA=!$cam.%$cam.vp.H%x%$cam.vp.W%.Above!"%\n%
+    Set "%%~i.Above=^!%%~i.ocA: =^!"%\n%
+  )%\n%
+  If "^!%%~iYmode^!" == "+" (%\n%
+    Set "%%~i.ocB=!$cam.%$cam.vp.H%x%$cam.vp.W%.below!"%\n%
+    Set "%%~i.Below=^!%%~i.ocB: =^!"%\n%
+  )%\n%
 ) else Set obj.inf=
 
 exit /b 0

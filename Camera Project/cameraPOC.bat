@@ -16,7 +16,7 @@ Setlocal EnableExtensions EnableDelayedexpansion
 %= Prepare a clean and minimal Environment by undefining all but minimally required variables =%
  if not defined temp if defined tmp set "temp=!tmp!"
  Set "PathExt=.COM;.BAT;.CMD;.EXE;.MSC"
- Set "exclude= temp PathExt comSpec winDir cmdcmdline systemRoot exclude "
+ Set "exclude= WT_Session temp PathExt comSpec winDir cmdcmdline systemRoot exclude "
  2> nul (   
    for /f "tokens=1 delims==" %%G in ('Set') Do (
      If /i "%%G" == "Path" (
@@ -63,7 +63,7 @@ REM TBA inspect Load_Map and confirm c. bounding variables are
 REM     all defined to facilitate on-the-fly map changes 
 %= DEFINES PREREQUISITE VARIABLES THAT CONSTRAIN SIZE SELECTION =%
   If "!debug!" == "1" ( Set "$cam.LoadSwitch=/r" ) Else Set "$cam.LoadSwitch="
-  %=          filepath    MapID           Reset[Development_Testing] =%
+  %=                                              filepath    MapID           Reset[Development_Testing] =%
   Call "%~dp0Modules\load_Map.cmd" "%~dp0data\demomap.txt"        1           %$cam.LoadSwitch%
   If errorlevel 1 exit /b %errorlevel%
 
@@ -81,7 +81,7 @@ REM e1.1.1.1: IE, outputting the literal form of:
 REM e1.1.1.1:     !#[int]:~offset:retain!!#[int]:~offset:retain!!#[int]:~offset:retain!...
 
 %= EXAMPLE OF DEFINING A SPRITE ENTITY =%
-Set "Player=%\e%[7;^!p.c^!m%\e%[^!p.Y1^!;^!p.x^!H▓▓▓%\e%[^!p.Y2^!;^!p.x^!H^!p.occupied:~3,3^!%\e%[^!p.Y3^!;^!p.x^!H^!p.occupied:~6,3^!%\e%[^!p.u^!;^!p.x^!H^!p.above^!%\e%[48;2;^!Map.bgc^!;27m"
+Set "Player=%\e%[7;^!p.c^!m%\e%[^!p.Y1^!;^!p.x^!H▓▓▓%\e%[^!p.Y2^!;^!p.x^!H^!p.occupied:~3,3^!%\e%[^!p.Y3^!;^!p.x^!H^!p.occupied:~6,3^!%\e%[48;2;^!Map.bgc^!;27m"
 REM %sprites% are appended each $quad.n echo like an overlay to eliminate flickering.
 REM           IE: Echo(!$quad.1!%sprites%
 REM the number and complexity of sprites will reduce the maximum possible area / substitutions possible.
@@ -224,8 +224,8 @@ REM functional demonstrations
   cls
   Set "pXmode=+"
   Set "pYmode=+"
-  Set "Ymode=+"
-  Set "Xmode=+"
+  Set "cYmode=+"
+  Set "cXmode=+"
 
   Set /a x=c.y,low=c.y.min,high=c.y.max,"c.y=%clamp%",^
          x=c.x,low=c.x.min,high=c.x.max,"c.x=%clamp%",^
@@ -265,26 +265,27 @@ REM functional demonstrations
       Set /a "fReady=1","frames+=1"
 
       %= PSEUDO CONTROLLOR TO DEMONSTRATE FUNCTIONALITY =%
-      If !c.x! == !c.bX! Set Xmode=-
-      If !Xmode! == - If !c.x! == !c.x.min! Set Xmode=+
+      If !c.x! == !c.bX! Set cXmode=-
+      If !cXmode! == - If !c.x! == !c.x.min! Set cXmode=+
       %= Y axis controller disabled to prevent jitter and demonstrate clamp bounding =%
-      REM %= DISABLED =% If !c.Y! == !c.bY! Set Ymode=-
-      REM %= DISABLED =% If !Ymode! == - If !c.Y! == !c.Y.min! Set Ymode=+
+      REM %= DISABLED =% If !c.Y! == !c.bY! Set cYmode=-
+      REM %= DISABLED =% If !cYmode! == - If !c.Y! == !c.Y.min! Set cYmode=+
       If !p.x! == !p.x.end! Set pXmode=-
-      If !pXmode! == - If !p.x! == !c.x.min! Set pXmode=+
+      If !pXmode! == - If !p.x! == 2 Set pXmode=+
       If !p.y1A! == !p.y.end! Set pYmode=-
-      If !pYmode! == - If !p.Y! == !c.Y.min! Set pYmode=+
+      If !pYmode! == - If !p.Y! == 2 Set pYmode=+
 
       %= ENACT CAMERA MOVEMENT BOUND TO MAP DIMENSIONS USING CLAMP =%
 
-      Set /a c.y!Ymode!=1,c.x!Xmode!=1,^
+      Set /a c.y!cYmode!=1,c.x!cXmode!=1,^
              x=c.x,low=c.x.min,high=c.bX,"c.x=%clamp%",^
              x=c.y,low=c.y.min,high=c.bY,"c.y=%clamp%",^
              "%$shift.y%,%$shift.x%"
+REM tba relate clamping of player Y / c.Y.max to clamp with offset of -1 around camera boundary
+      %= ENACT ENTITY MOVEMENT BOUND TO CURRENT CAMERA DIMENSIONS USING CLAMP =%
 
-      %= ENACT ENTITY MOVEMENT BOUND TO CURRENT CAMERA FRAME USING CLAMP =%
-      Set /a "p.y!pYmode!=1,x=p.y,low=c.y.min,high=(c.h-p.h)+1,p.y=%clamp%",^
-             "p.x!pXmode!=1,x=p.x,low=c.x.min,high=(c.w-p.w)+1,p.x=%clamp%",^
+      Set /a "p.y!pYmode!=1,x=p.y,low=2,high=(c.h-p.h),p.y=%clamp%",^
+             "p.x!pXmode!=1,x=p.x,low=2,high=(c.w-p.w),p.x=%clamp%",^
              %$cam.update.obj:id=p%
 
       If !tDiff! gtr !FPS! (Set /a "droppedFR+=1,decFPS=(droppedFR-metFR),incFPS=(metFR-droppedFR)") Else Set /a "metFR+=1,incFPS=(metFR-droppedFR)" 
@@ -294,7 +295,7 @@ REM functional demonstrations
         If !incFPS! GTR 0 If !tDiff! GEQ !oFPS! If !FPS! GTR !oFPS! Set /a FPS-=1
         If !frames! GTR 350 If !metFr! GTR !droppedFr! Set /a FPS=fAvg,frameLock=frames,LkDropped=droppedFR,droppedFR=0
       )
-      %$cam.clip.3x3% !p.up! !p.dn! !p.lt! !p.rt! p !p.xA! %Ydata.3x3:ID=p%
+      %$cam.clip.3x3% p !p.xA! %$cam.adjacents:ID=p% %Ydata.3x3:ID=p%
       %= demonstrative visual indicator of collision state =% If "!p.collided!" == "" ( Set "p.c=32" ) Else (
         Set "p.c=31"
         Set "p.f="%= definition flags play vector flipped to restrict to once per collision event =%
@@ -303,8 +304,8 @@ REM functional demonstrations
           If "!pXmode!" == "+" (Set "pXmode=-")else Set "pXmode=+"
           If "!pYmode!" == "+" (Set "pYmode=-")else Set "pYmode=+"
           Set "p.f=1"
-          Set /a "p.y!pYmode!=p.h,x=p.y,low=c.y.min,high=(c.h-p.h)+1,p.y=%clamp%",^
-             "p.x!pXmode!=p.w,x=p.x,low=c.x.min,high=(c.w-p.w)+1,p.x=%clamp%",^
+          Set /a "p.y!pYmode!=(p.h-1),x=p.y,low=c.y.min,high=(c.h-p.h),p.y=%clamp%",^
+             "p.x!pXmode!=(p.w-1),x=p.x,low=c.x.min,high=(c.w-p.w)+1,p.x=%clamp%",^
              %$cam.update.obj:id=p%
         )
         If not "!p.occupied!" == "!p.occupied:}=!" Set "p.c=38;2;250;80;120" & if "!p.f!" == "" (
@@ -329,20 +330,25 @@ REM functional demonstrations
       %$cam.sub.quad.2%
       %$cam.sub.quad.3%
       %$cam.sub.quad.4%
+      Set "addon="
+      if defined p.left Set "addon=%\E%[!p.y!;!p.x!H%\E%[1D%\E%[48;2;50;50;115m%\E%[38;2;255;255;255m!p.ocL:~0,1!%\E%[1D%\E%[1B!p.ocL:~1,1!%\E%[1D%\E%[1B!p.ocL:~2,1!"
+      if defined p.right Set "addon=%\E%[!p.y!;!p.x!H%\E%[!p.w!C%\E%[48;2;50;50;115m%\E%[38;2;255;255;255m!p.ocR:~0,1!%\E%[1D%\E%[1B!p.ocR:~1,1!%\E%[1D%\E%[1B!p.ocR:~2,1!" 
+      if defined p.Above Set "addon=%\E%[!p.y!;!p.x!H%\E%[1A%\E%[48;2;50;50;115m%\E%[38;2;255;255;255m!p.ocA!" 
+      if defined p.Below Set "addon=%\E%[!p.y!;!p.x!H%\E%[!p.h!B%\E%[48;2;50;50;115m%\E%[38;2;255;255;255m!p.ocB!" 
       %= DEBUG =% If defined debug (
       %= DEBUG =%   %strlen:$len=$quad.a1% $quad.1
       %= DEBUG =%   %strlen:$len=$quad.a2% $quad.2
       %= DEBUG =%   %strlen:$len=$quad.a3% $quad.3
       %= DEBUG =%   %strlen:$len=$quad.a4% $quad.4
       %= DEBUG =%   Set /a "$quad.ttlA=$quad.a1+$quad.a2+$quad.a3+$quad.a4,$quad.avg=$quad.ttlA/4,$quad.ttlA+=(%$cam.spr.len%*4)" 
-      %= DEBUG =%   title -!c.h!x!c.w!- -%$cam.Har%:%$cam.War%- c!c.A! cSubbed!$quad.ttlA! [!p.y1!;!p.x!]
+      %= DEBUG =%   title -!c.h!x!c.w!- -%$cam.Har%:%$cam.War%- c!c.A! cSubbed!$quad.ttlA! [!p.y1!;!p.x!] !p.xA!/!p.x.end!/!c.x.max!
       %= DEBUG =% )
-      echo(%\e%[H%\e%[48;2;^!Map.bgc^!m!$quad.1!%sprites%
-      echo(!$quad.2!%sprites%
-      echo(!$quad.3!%sprites%
-      echo(!$quad.4!%sprites%
+      echo(%\e%[H%\e%[48;2;!Map.bgc!m!$quad.1!%sprites%!addon!
+      echo(%\e%[48;2;!Map.bgc!m!$quad.2!%sprites%!addon!
+      echo(%\e%[48;2;!Map.bgc!m!$quad.3!%sprites%!addon!
+      echo(%\e%[48;2;!Map.bgc!m!$quad.4!%sprites%!addon!
       if defined debug Echo(%\e%[!c.h!;1H%\e%[2E%\e%[0m%\e%[K fps=!tFPS! RENDER start %time% frame:!frames! end:!time!%\e%[E%\e%[K cs/frame = a:!tDiff!/t:!FPS! d:!droppedFR! m:!metFR! a:!fAvg! Frame Locked @:!frameLock! Dropped prior Lock:!LkDropped!%\e%[0m%\e%[K
-      If !frames! GEQ 500 (
+      If !frames! GEQ 5500 (
         PAUSE > nul
         EXIT
       )

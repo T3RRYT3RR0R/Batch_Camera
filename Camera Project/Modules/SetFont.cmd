@@ -1,3 +1,12 @@
+:raise_Error.int ModuleID: 0
+REM e2.1.0.0: Argument missing.
+if not defined raise_Error (
+  Echo( Required dependency missing: raise_Error
+  Echo( Definition expected before calling "%~f0"
+  Pause
+  Exit /b 1
+)
+
 :setFont ModuleID: 7
 REM e5.1.7.1 Integer expected for Arg 1
 if not defined setfont (
@@ -7,16 +16,35 @@ REM e2.1.7.2 Arg1: IntegerSize
 REM e2.1.7.2 Arg2: "Font Name"
 REM e5.1.7.3 Font not found.
 
-:raise_Error.int ModuleID: 0
-REM e2.1.0.0: Argument missing.
+REM e5.1.7.4: [48;2;12;12;12m[38;2;220;80;80mThis program requires cmd.exe to be the default console application.
+REM e5.1.7.4: and will not allow execution via windows terminal.
+REM e5.1.7.4: 
+REM e5.1.7.4: [38;2;50;200;80mTo resolve:[0m
+REM e5.1.7.4: Right click on the TitleBar and select:
+REM e5.1.7.4: + Settings
+REM e5.1.7.4: └--+ Default Terminal Application
+REM e5.1.7.4: [38;2;12;12;12m`[0m  └--> Windows Console Host
+REM e5.1.7.4: 
+REM e5.1.7.4: Now, restart the program within cmd.exe or launch the script directly.
 
-REM from the StdLibrary created by IcarusLives
-REM https://github.com/IcarusLivesHF/Windows-Batch-Library/tree/8812670566744d2ee14a9a68a06be333a27488cc
-if not defined raise_Error (
-  Echo( Required dependency missing: raise_Error
-  Echo( Definition expected before calling "%~f0"
-  Pause
-  Exit /b 1
+REM e5.1.7.5: Find and remove definition of SetFont_debug
+
+rem Set Setfont_debug=1
+
+for /f "tokens=3" %%A in ('reg query HKCU\Console\%%%%Startup /v DelegationTerminal 2^>nul ^| find "{"') do (
+  for /f "tokens=3" %%B in ('reg query HKCU\Console\%%%%Startup /v DelegationConsole 2^>nul ^| find "{"') do (
+    If not "%Setfont_debug%" == "" (
+      Echo(DelegationTerminal=%%~A
+      Echo(DelegationConsole=%%~B
+      Echo(WT_Session=%WT_Session%
+      %raise_Error% 7.5 debug_Setfont defined.
+    )
+    if /i not "%%A%%B" == "{B23D10C0-E52E-411E-9D5B-C09FDF709C7D}{B23D10C0-E52E-411E-9D5B-C09FDF709C7D}" (
+      %raise_Error% 7.4 Cmd.exe required %%A%%B
+    ) Else (
+      if defined WT_Session %raise_Error% 7.4 Cmd.exe required.
+    )
+  )
 )
 
 If "%~1" == "" %raise_Error% 7.2 Argument 1 Missing.
