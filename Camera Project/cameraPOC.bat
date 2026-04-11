@@ -317,13 +317,13 @@ REM tba relate clamping of player Y / c.Y.max to clamp with offset of -1 around 
              %$cam.update.obj:id=p%
         )
         If not "!p.occupied!" == "!p.occupied:{=!" Set "p.c=38;2;250;80;120"
-        If not "!p.occupied!" == "!p.occupied:\=!" Set "p.c=38;2;0;100;180"
-        If not "!p.occupied!" == "!p.occupied:/=!" Set "p.c=38;2;0;100;180"
-        If not "!p.occupied!" == "!p.occupied:_=!" Set "p.c=38;2;0;100;180"
-        If not "!p.occupied!" == "!p.occupied:o=!" Set "p.c=38;2;0;100;180"
-        If not "!p.occupied!" == "!p.occupied:+=!" Set "p.c=38;2;0;100;180"
-        If not "!p.occupied!" == "!p.occupied:R=!" Set "p.c=38;2;0;100;180"
-        If not "!p.occupied!" == "!p.occupied:|=!" Set "p.c=38;2;0;100;180"
+        If not "!p.occupied!" == "!p.occupied:\=!" Set "p.c=38;2;0;120;100"
+        If not "!p.occupied!" == "!p.occupied:/=!" Set "p.c=38;2;0;120;100"
+        If not "!p.occupied!" == "!p.occupied:_=!" Set "p.c=38;2;0;120;100"
+        If not "!p.occupied!" == "!p.occupied:o=!" Set "p.c=38;2;0;120;100"
+        If not "!p.occupied!" == "!p.occupied:+=!" Set "p.c=38;2;0;120;100"
+        If not "!p.occupied!" == "!p.occupied:R=!" Set "p.c=38;2;0;120;100"
+        If not "!p.occupied!" == "!p.occupied:|=!" Set "p.c=38;2;0;120;100"
       )
       %$cam.clip.frame%
       %$cam.sub.quad.1%
