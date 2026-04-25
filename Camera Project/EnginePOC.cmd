@@ -1,4 +1,9 @@
 @Echo off & cls
+
+REM TBA identify cause of boundary 'drag' when travelling toward away from y max
+REM [cont] p.h worth of p.y changes that are not being reflected in c.y position modification
+REM proposition to determine: are c.y clamp bounding variables ncorrect or positionally dependent 
+
 REM expected file encoding is bomless utf-8
 REM Font used is Cascadia Code size 10 - SetFont by IcarusLives is used to assign this font.
 REM This font represents UTF-8 Glyphs well across all sizes.
@@ -146,32 +151,7 @@ Call:Cam.%$cam.splitmode%_init
 %= It is just a means of facilitating Substitutions =%
 %= of each $quad.i segment                          =%
 %= If not used, define $cam.subs with a value of 1  =%
-call:init_cam.ColorMap
-If errorlevel 1 exit /b %errorlevel%
 
-REM performance and maximum area are impacted by the number of substitutions applied
-REM 12 mappings should provide decent performance for most users
-
-Set "$cam.pipe=^^|"
-
-If not defined reject.substitutions (
-  %$cam.PUSH.colorMap% + 38;5;114 ░
-  %$cam.PUSH.colorMap% - 38;5;115 ▀
-  %$cam.PUSH.colorMap% i 38;2;180;180;120 ▄
-  %$cam.PUSH.colorMap% / 38;5;190 /
-  %$cam.PUSH.colorMap% \ 38;5;190 \
-  %$cam.PUSH.colorMap% _ 38;5;190 %\e%[4m_%\e%[24m
-  %$cam.PUSH.colorMap% !$cam.pipe! 38;5;190 !$cam.pipe!
-  %$cam.PUSH.colorMap% v 38;2;190;130;80 ▒
-  %$cam.PUSH.colorMap% w 38;5;36 §
-  %$cam.PUSH.colorMap% n 5;38;5;36 §%\e%[25m
-  %$cam.PUSH.colorMap% O 38;5;133 ▒
-  %$cam.PUSH.colorMap% R 31 ▒
-  %$cam.PUSH.colorMap% { 32 \
-  %$cam.PUSH.colorMap% } 32 /
-  %$cam.PUSH.colorMap% ¦ 38;5;94 ▒
-  %$cam.PUSH.colorMap% @ 34 @
-)
 
 REM e5.1.1.2: Camera quadrant Area post Substitution must not exceed the line
 REM e5.1.1.2:  length limit of:                8192,
@@ -253,7 +233,7 @@ REM cardinal directions not applying mode and force changes in correct vectors
   Set "CMDCMDLINE="
   Set /A "DPAD=6","lDPAD=6","Pause=1"
 
-
+Call :ReserveEnvSpace 16
 ( %= Preloading engine / gameloop into the environment prior to execution by   =%
   %= wrapping in parentheses. facilitates enviroment unloading while retaining =%
   %= access to macros / variables using percent expansion =%
@@ -265,6 +245,7 @@ REM cardinal directions not applying mode and force changes in correct vectors
   Set "cYmode=+"
   Set "cXmode=+"
 
+  Set /a p.xW=p.x,p.yW=p.y
   Set /a x=c.y,low=c.y.min,high=c.y.max,"c.y=%clamp%",^
          x=c.x,low=c.x.min,high=c.x.max,"c.x=%clamp%",^
          "%$shift.x%,%$shift.y%"
@@ -363,22 +344,23 @@ REM cardinal directions not applying mode and force changes in correct vectors
       %= Y axis controller disabled to prevent jitter and demonstrate clamp bounding =%
       REM %= DISABLED =% If !c.Y! == !c.bY! Set cYmode=-
       REM %= DISABLED =% If !cYmode! == - If !c.Y! == !c.Y.min! Set cYmode=+
-      If !p.x! == !p.x.end! Set pXmode=-
-      If !pXmode! == - If !p.x! == 2 Set pXmode=+
-      If !p.y1A! == !p.y.end! Set pYmode=-
-      If !pYmode! == - If !p.Y! == 2 Set pYmode=+
+      If !p.xW! == !p.x.end! Set pXmode=-
+      If !pXmode! == - If !p.xW! == 2 Set pXmode=+
+      If !p.yW! == !p.y.end! Set pYmode=-
+      If !pYmode! == - If !p.YW! == 2 Set pYmode=+
 
       %= ENACT CAMERA MOVEMENT BOUND TO MAP DIMENSIONS USING CLAMP =%
 
-      Set /a c.y!cYmode!=1,c.x!cXmode!=1,^
-             x=c.x,low=c.x.min,high=c.bX,"c.x=%clamp%",^
-             x=c.y,low=c.y.min,high=c.bY,"c.y=%clamp%",^
+      Set /a "p.yW!pYmode!=!pYforce!,x=p.yW,low=2,high=p.y.end,p.yW=%clamp%",^
+             "p.xW=p.xW!pXmode!=!pXforce!,x=p.xW,low=2,high=p.x.end,p.xW=%clamp%",^
+             "c.y=p.yW-c.h,x=c.y,low=1,high=(c.y.max-c.h)-1","c.y=%clamp%",^
+             "c.x=p.xW-c.w,x=c.x,low=0,high=(c.x.max-c.w)-1","c.x=%clamp%",^
              "%$shift.y%,%$shift.x%"
 REM tba relate clamping of player Y / c.Y.max to clamp with offset of -1 around camera boundary
       %= ENACT ENTITY MOVEMENT BOUND TO CURRENT CAMERA DIMENSIONS USING CLAMP =%
 
-      Set /a "p.y!pYmode!=!pYforce!,x=p.y,low=2,high=(c.h-p.h),p.y=%clamp%",^
-             "p.x!pXmode!=!pXforce!,x=p.x,low=2,high=(c.w-p.w),p.x=%clamp%",^
+      Set /a "p.y=p.yW,x=p.y,low=2,high=(c.h-p.h),p.y=%clamp%",^
+             "p.x=p.xW,x=p.x,low=2,high=(c.w-p.w),p.x=%clamp%",^
              %$cam.update.obj:id=p%
 
       If !tDiff! gtr !FPS! (Set /a "droppedFR+=1,decFPS=(droppedFR-metFR),incFPS=(metFR-droppedFR)") Else Set /a "metFR+=1,incFPS=(metFR-droppedFR)" 
@@ -387,7 +369,7 @@ REM tba relate clamping of player Y / c.Y.max to clamp with offset of -1 around 
         If !fAvg! GTR !FPS! If !decFPS! GTR 0 Set /a "FPS=fAvg+1"
         If !incFPS! GTR 0 If !tDiff! GEQ !oFPS! If !FPS! GTR !oFPS! Set /a FPS-=1
         If !frames! GTR 350 If !metFr! GTR !droppedFr! (
-          set /a "FPS=fAvg+((((metFR-droppedFR)-(metFR/2))>>31)&1),frameLock=frames,LkDropped=droppedFR,droppedFR=0"
+          set /a "FPS=fAvg+((((metFR-droppedFR)-(metFR/3))>>31)&1),frameLock=frames,LkDropped=droppedFR,droppedFR=0"
         ) Else set /a "FPS=fAvg+((((metFR-droppedFR)-(metFR/2))>>31)&1),frameLock=frames,LkDropped=droppedFR,droppedFR=0"
       )
       %$cam.clip.3x3% p !p.xA! %$cam.adjacents:ID=p% %Ydata.3x3:ID=p%
@@ -400,16 +382,20 @@ REM tba relate clamping of player Y / c.Y.max to clamp with offset of -1 around 
           If "!pYmode!" == "+" (Set "pYmode=-")else Set "pYmode=+"
           For %%V in ("!DPAD!") Do Set /a "DPAD=!i%%V!","lDPAD=!i%%V!"
           Set /a "p.f=1","pYforce=1","pXforce=1"
-          Set /a "p.y!pYmode!=(p.h-1),x=p.y,low=c.y.min,high=(c.h-p.h),p.y=%clamp%",^
-             "p.x!pXmode!=(p.w-1),x=p.x,low=c.x.min,high=(c.w-p.w)+1,p.x=%clamp%",^
+          Set /a "p.yW!pYmode!=p.h-1,x=p.yW,low=2,high=p.y.end,p.yW=%clamp%",^
+             "p.xW=p.xW!pXmode!=p.w-1,x=p.xW,low=2,high=p.x.end,p.xW=%clamp%",^
+             "p.y=p.yW,x=p.y,low=2,high=(c.h-p.h),p.y=%clamp%",^
+             "p.x=p.xW,x=p.x,low=2,high=(c.w-p.w),p.x=%clamp%",^
              %$cam.update.obj:id=p%
         )
         If not "!p.occupied!" == "!p.occupied:}=!" Set "p.c=38;2;250;80;120" & if "!p.f!" == "" (
           If "!pXmode!" == "+" (Set "pXmode=-")else Set "pXmode=+"
           If "!pYmode!" == "+" (Set "pYmode=-")else Set "pYmode=+"
           Set "p.f=1"
-          Set /a "p.y!pYmode!=p.h,x=p.y,low=c.y.min,high=(c.h-p.h)+1,p.y=%clamp%",^
-             "p.x!pXmode!=p.w,x=p.x,low=c.x.min,high=(c.w-p.w)+1,p.x=%clamp%",^
+          Set /a "p.yW!pYmode!=p.h,x=p.yW,low=2,high=p.y.end,p.yW=%clamp%",^
+             "p.xW=p.xW!pXmode!=p.w,x=p.xW,low=2,high=p.x.end,p.xW=%clamp%",^
+             "p.y=p.yW,x=p.y,low=2,high=(c.h-p.h),p.y=%clamp%",^
+             "p.x=p.xW,x=p.x,low=2,high=(c.w-p.w),p.x=%clamp%",^
              %$cam.update.obj:id=p%
         )
         If not "!p.occupied!" == "!p.occupied:{=!" Set "p.c=38;2;250;80;120"
@@ -436,7 +422,7 @@ REM tba relate clamping of player Y / c.Y.max to clamp with offset of -1 around 
       %= DEBUG =%   %strlen:$len=$quad.a2% $quad.2
       %= DEBUG =%   %strlen:$len=$quad.a3% $quad.3
       %= DEBUG =%   %strlen:$len=$quad.a4% $quad.4
-      %= DEBUG =%   TITLE [!keys!:!LDPAD!:!DPAD!:!PAUSE!] [!cM.X!:!cM.Y!] QUIT:!qKey! MV: 12346789] [p!p.y1!;!p.x! c!c.Y!;!c.x!]
+      %= DEBUG =%   TITLE [!keys!:!LDPAD!:!DPAD!:!PAUSE!] [!cM.X!:!cM.Y!] QUIT:!qKey! MV: 12346789] [p!p.yW!;!p.xW! e!p.Y.end!;!p.x.end!]
       %= DEBUG =%   Set /a "$quad.ttlA=$quad.a1+$quad.a2+$quad.a3+$quad.a4,$quad.avg=$quad.ttlA/4,$quad.ttlA+=(%$cam.spr.len%*4)" 
 
       %= DEBUG =% REM title -!c.h!x!c.w!- -%$cam.Har%:%$cam.War%- c!c.A! cSubbed!$quad.ttlA! 
@@ -632,3 +618,15 @@ FOR /L %%C in () do (
 	)
 )
 EXIT
+
+:ReserveEnvSpace sizeInKB
+rem Define the first large variable (reserving 6 bytes for variable name)
+set z1=X
+for /L %%i in (1,1,12) do set z1=!z1!!z1!
+set z1=!z1!!z1:~8!
+rem Define the rest of large variables
+set /A lastVar=%1 / 8
+for /L %%i in (2,1,%lastVar%) do set z%%i=!z1!
+rem Delete all the large variables in bottom-up order
+for /L %%i in (%lastVar%,-1,1) do set z%%i=
+exit /B

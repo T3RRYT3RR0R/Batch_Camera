@@ -1,0 +1,23 @@
+Logic requirements for reengineering %$cam.sub.quad.#% to facilitate runtime modification
+of the substitution table
+
+macro becomes a for /l loop iterating internally of substitution tokens
+
+Set $cam.Transforms=For /f "tokens=1-16 delims= " %%k in ("^!$sub.1^! ^!$sub.2^! ^!$sub.3^! ^!$sub.4^! ^!$sub.5^! ^!$sub.6^! ^!$sub.7^! ^!$sub.8^! ^!$sub.9^! ^!$sub.10^! ^!$sub.11^! ^!$sub.12^! ^!$sub.13^! ^!$sub.14^! ^!$sub.15^! ^!$sub.16^!") Do for /l %%# in (1 1 4) Do (%\n%
+ if not .^^!$sub.1^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~k^!"%\n%
+ if not .^^!$sub.2^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~l^!"%\n%
+ if not .^^!$sub.3^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~m^!"%\n%
+ if not .^^!$sub.4^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~n^!"%\n%
+ if not .^^!$sub.5^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~o^!"%\n%
+ if not .^^!$sub.6^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~p^!"%\n%
+ if not .^^!$sub.7^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~q^!"%\n%
+ if not .^^!$sub.8^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~r^!"%\n%
+ if not .^^!$sub.9^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~s^!"%\n%
+ if not .^^!$sub.10^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~t^!"%\n%
+ if not .^^!$sub.11^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~u^!"%\n%
+ if not .^^!$sub.12^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~v^!"%\n%
+ if not .^^!$sub.13^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~w^!"%\n%
+ if not .^^!$sub.14^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~x^!"%\n%
+ if not .^^!$sub.15^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~y^!"%\n%
+ if not .^^!$sub.16^^! == . Set "$quad.%%#=^^^!$quad.%%#:%%~z^!"%\n%
+)

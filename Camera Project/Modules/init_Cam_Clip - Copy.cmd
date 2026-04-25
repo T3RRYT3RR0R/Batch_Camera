@@ -95,10 +95,9 @@ Set /a "low=1,high=13,x=%~1,$cam.vp.H=%clamp%",^
 rem tokens = height + id reference + left + right + above + below
 Set /a $cam.vp.metaVarCount=$cam.vp.H+6
 Set "$cam.vp.Oc="
-REM %= to cameraEdge _ comparitor is id.x =% Set $cam.update.Obj="id.xA=c.X+(id.X-1),id.Y1A=c.Y+(id.Y-1),id.Y1=p.Y,id.Y.end=(c.y+c.h)-%~1,id.X.end=(c.w-%~2)+1,id.yAbove=id.y1A-1,id.yBelow=id.y1A+id.h+1,id.xLeft=id.xA-1,id.xRight=id.xA+id.W+1"
+REM %= to cameraEdge _ comparitor is id.x =% Set $cam.update.Obj="id.xA=c.X+(id.X-1),id.Y1A=(c.Y+id.Y)-1,id.Y1=p.Y,id.Y.end=(c.y+c.h)-%~1,id.X.end=(c.w-%~2)+1,id.yAbove=id.y1A-1,id.yBelow=id.y1A+id.h+1,id.xLeft=id.xA-1,id.xRight=id.xA+id.W+1"
 rem cap traversal to mapEdge-1  _ comparitor is id.xA : id.x.max="(c.x.max-id.w)-id.w"
-%= id.x.max cap traversal to cameraEdge-1 _ comparitor is id.x  =% Set $cam.update.Obj="id.xA=c.X+(id.X-1),id.Y1A=(c.Y+id.Y)-1,id.Y1=p.Y,id.Y.end=(c.y.max-id.h)-1,id.X.end=(c.x.max-id.w)-1,id.yAbove=id.y1A-1,id.yBelow=id.y1A+id.h+1,id.xLeft=id.xA-1,id.xRight=id.xA+id.W+1"
-
+%= id.x.max cap traversal to cameraEdge-1 _ comparitor is id.x  =% Set $cam.update.Obj="id.xA=c.X+(id.X-1),id.Y1A=(c.Y+id.Y)-1,id.Y1=p.Y,id.Y.end=(c.y.max-id.h)-1,id.X.end=(c.w-id.w),id.yAbove=id.y1A-1,id.yBelow=id.y1A+id.h+1,id.xLeft=id.xA-1,id.xRight=id.xA+id.W+1"
 Set "Ydata.%$cam.vp.H%x%$cam.vp.W%="
 
 for /l %%_ in (1,1,%$cam.vp.H%) do (
