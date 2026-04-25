@@ -1,4 +1,5 @@
 @Echo off & cls
+echo "%~f0" Obsolote & Pause & Goto:Eof
 REM expected file encoding is bomless utf-8
 REM Font used is Cascadia Code size 10 - SetFont by IcarusLives is used to assign this font.
 REM This font represents UTF-8 Glyphs well across all sizes.
