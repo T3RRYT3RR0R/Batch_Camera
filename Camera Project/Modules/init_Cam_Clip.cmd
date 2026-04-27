@@ -152,3 +152,4 @@ Set $cam.clip.%$cam.vp.H%x%$cam.vp.W%=For %%n in (1 2) Do If %%n == 2 For /f "to
 ) else Set obj.inf=
 
 exit /b 0
+

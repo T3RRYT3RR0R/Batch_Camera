@@ -51,7 +51,6 @@ If not "!!" == "" (
   Set "$cam.spaces=  "
   For /l %%i in (1 1 5) Do Set "$cam.spaces=!$cam.spaces: =    !"
 
-
   Setlocal DISABLEdelayedExpansion
 
   Set "$cam.extract=0"
@@ -122,6 +121,7 @@ If not "!!" == "" (
   )
 
   Call "%~dp0init_ColorMap.cmd" "%~1" "%~2"
+  If errorlevel 1 Exit /b %errorlevel%
 
   Set "$cam.LinearScale=((x-1)*2)"
   %= approx 2700 floor was derived from testing a variety of sizes and substitution densities. =%

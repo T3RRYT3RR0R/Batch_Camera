@@ -2,7 +2,7 @@
 
 REM TBA identify cause of boundary 'drag' when travelling toward away from y max
 REM [cont] p.h worth of p.y changes that are not being reflected in c.y position modification
-REM proposition to determine: are c.y clamp bounding variables ncorrect or positionally dependent 
+REM proposition to determine: are c.y clamp bounding variables incorrect or positionally dependent 
 
 REM expected file encoding is bomless utf-8
 REM Font used is Cascadia Code size 10 - SetFont by IcarusLives is used to assign this font.
@@ -408,10 +408,7 @@ REM tba relate clamping of player Y / c.Y.max to clamp with offset of -1 around 
         If not "!p.occupied!" == "!p.occupied:|=!" Set "p.c=38;2;0;120;100"
       )
       %$cam.clip.frame%
-      %$cam.sub.quad.1%
-      %$cam.sub.quad.2%
-      %$cam.sub.quad.3%
-      %$cam.sub.quad.4%
+      %$cam.transforms%
       Set "addon="
       if defined p.left Set "addon=%\E%[!p.y!;!p.x!H%\E%[1D%\E%[48;2;50;50;115m%\E%[38;2;255;255;255m!p.ocL:~0,1!%\E%[1D%\E%[1B!p.ocL:~1,1!%\E%[1D%\E%[1B!p.ocL:~2,1!"
       if defined p.right Set "addon=%\E%[!p.y!;!p.x!H%\E%[!p.w!C%\E%[48;2;50;50;115m%\E%[38;2;255;255;255m!p.ocR:~0,1!%\E%[1D%\E%[1B!p.ocR:~1,1!%\E%[1D%\E%[1B!p.ocR:~2,1!" 

@@ -67,7 +67,7 @@ REM                     ▒ ▓ ░ █ ▬ ▄ ▀ ¦
 :1:transform: / 38;5;190 /
 :1:transform: \ 38;5;190 \
 :1:transform: _ 38;5;190 \e[4m_\e[24m
-:1:transform: !$cam.pipe! 38;5;190 !$cam.pipe!
+:1:transform: | 38;5;190 |
 :1:transform: v 38;2;190;130;80 ▒
 :1:transform: w 38;5;36 §
 :1:transform: n 5;38;5;36 §\e[25m
