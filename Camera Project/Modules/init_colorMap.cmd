@@ -24,7 +24,7 @@
  REM e5.1.2.3: Characters reserved for VT sequences: 0 1 2 3 4 5 6 7 8 9 [ mM bB gG dD eE
  REM e5.1.2.3: Substitutions are NOT case aware.
  
-REM e5.1.2.4: Too few Substitutions. Minimum of 8 required
+ REM e5.1.2.4: Too few Substitutions. Minimum of 8 required
  
 
   if "!\e!" == "" For /f %%E in ('echo prompt $E^|cmd.exe') do set \e=%%E
