@@ -82,6 +82,6 @@
      %$cam.PUSH.colorMap% %%~"%%~Q%%~"
   )
 
-  If !$cam.subs! LSS 8 %raise_Error% 2.4 Substitutions Used: %$cam.subs% in map:"%~2" file "%~f1"%\n%
+  If !$cam.subs! LSS 8 %raise_Error% 2.4 Substitutions Used: %$cam.subs% in map:"%~2" file "%~f1"
 
 exit /b 0
