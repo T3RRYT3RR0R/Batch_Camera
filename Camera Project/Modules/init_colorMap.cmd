@@ -78,8 +78,8 @@
   Set "$cam.PUSH.colorMap=!$cam.PUSH.colorMap:  =!"
 
   Set "$cam.pipe=|"
-  For /f "tokens=2 Delims=+" %%^" in ("+"+"+")Do For /f "tokens=1,2,* Delims=:" %%O in ('Findstr.exe /BRIC:"[:]%~2[:]transform[:]" "%~f1" 2^> nul')Do ( 
-     %$cam.PUSH.colorMap% %%~"%%~Q%%~"
+  For /f "tokens=2 Delims=+" %%^" in ("+"+"+")Do For /f "tokens=1,2,* Delims=:" %%O in ('Findstr.exe /BRIC:"[:]%~2[:]transform[:]" "%~f1" 2^> nul')Do (
+    %$cam.PUSH.colorMap% %%~"%%~Q%%~"
   )
 
   If !$cam.subs! LSS 8 %raise_Error% 2.4 Substitutions Used: %$cam.subs% in map:"%~2" file "%~f1"
